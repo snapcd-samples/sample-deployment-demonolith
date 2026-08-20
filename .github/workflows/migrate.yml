@@ -1,12 +1,10 @@
 # The team story of a monolith split, as three CI lanes.
 #
-#   refactor-diff   every event — the standing gate. A developer runs
+#   refactor-diff   every PR and push — the standing gate. A developer runs
 #                   `demonolith refactor` locally (plus `refactor validate` for the
 #                   engine's own check) and the PR carries the map and the new module
 #                   directories as ordinary files; `refactor diff` checks they still
-#                   match the source. Offline, no credentials, seconds. It also runs
-#                   on the manual dispatch, where the migrate job depends on it: no
-#                   cutover on an out-of-sync split.
+#                   match the source. Offline, no credentials, seconds.
 #
 #   migrate-prove   every PR — `migrate map` pulls the monolith's state read-only and
 #                   splits local copies; `migrate prove` plans every new module to
@@ -15,7 +13,8 @@
 #
 #   migrate         manual (workflow_dispatch) — the cutover, run once, after the PR
 #                   is merged and during a change freeze on the monolith. Safe to
-#                   re-run after a crash: already-pushed modules skip.
+#                   re-run after a crash: already-pushed modules skip. No CI pre-gate
+#                   is needed: demonolith itself refuses a stale or out-of-sync map.
 #
 # This sample builds a throwaway world per job (a simulated S3 state store, then the
 # baseline apply) so the workflow is self-contained. In a real repository the store
@@ -23,7 +22,7 @@
 # and the values that .env carries here (the store credentials, TF_VAR_*) come from
 # CI secrets instead of the checked-in mock defaults.
 
-name: split
+name: migrate
 
 on:
   pull_request:
@@ -33,6 +32,7 @@ on:
 
 jobs:
   refactor-diff:
+    if: github.event_name != 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -69,7 +69,6 @@ jobs:
 
   migrate:
     if: github.event_name == 'workflow_dispatch'
-    needs: refactor-diff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
