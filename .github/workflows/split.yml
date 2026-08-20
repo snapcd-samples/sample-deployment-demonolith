@@ -1,19 +1,21 @@
 # The team story of a monolith split, as three CI lanes.
 #
-#   diff-split          every PR and push — the standing gate. A developer runs
-#                       `demonolith refactor` locally (plus `refactor validate` for the
-#                       engine's own check) and the PR carries the map and the new
-#                       module directories as ordinary files; this job diffs them
-#                       against the source. Offline, no credentials, seconds.
+#   refactor-diff   every event — the standing gate. A developer runs
+#                   `demonolith refactor` locally (plus `refactor validate` for the
+#                   engine's own check) and the PR carries the map and the new module
+#                   directories as ordinary files; `refactor diff` checks they still
+#                   match the source. Offline, no credentials, seconds. It also runs
+#                   on the manual dispatch, where the migrate job depends on it: no
+#                   cutover on an out-of-sync split.
 #
-#   rehearse-migration  every PR — the migration, rehearsed. `migrate map` pulls the
-#                       monolith's state read-only and splits local copies; `migrate
-#                       prove` plans every new module to zero changes. Nothing is
-#                       pushed, so a rejected PR leaves the world untouched.
+#   migrate-prove   every PR — `migrate map` pulls the monolith's state read-only and
+#                   splits local copies; `migrate prove` plans every new module to
+#                   zero changes. Nothing is pushed, so a rejected PR leaves the
+#                   world untouched.
 #
-#   migrate             manual (workflow_dispatch) — the cutover, run once, after the
-#                       PR is merged and during a change freeze on the monolith. Safe
-#                       to re-run after a crash: already-pushed modules skip.
+#   migrate         manual (workflow_dispatch) — the cutover, run once, after the PR
+#                   is merged and during a change freeze on the monolith. Safe to
+#                   re-run after a crash: already-pushed modules skip.
 #
 # This sample builds a throwaway world per job (a simulated S3 state store, then the
 # baseline apply) so the workflow is self-contained. In a real repository the store
@@ -30,7 +32,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  diff-split:
+  refactor-diff:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -39,10 +41,10 @@ jobs:
           go-version: stable
       - name: Install demonolith
         run: go install github.com/schrieksoft/demonolith@latest
-      - name: Diff the split against the source
+      - name: refactor diff — the committed split still matches the source
         run: demonolith refactor diff
 
-  rehearse-migration:
+  migrate-prove:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
@@ -59,7 +61,7 @@ jobs:
         run: |
           ./step1_env.sh
           ./step2_baseline.sh
-      - name: Rehearse the migration — read-only, nothing pushed
+      - name: migrate map + prove — read-only, nothing pushed
         run: |
           source .env
           demonolith migrate map --engine tofu
@@ -67,6 +69,7 @@ jobs:
 
   migrate:
     if: github.event_name == 'workflow_dispatch'
+    needs: refactor-diff
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -82,5 +85,5 @@ jobs:
         run: |
           ./step1_env.sh
           ./step2_baseline.sh
-      - name: Migrate — map, prove, push, verify
+      - name: migrate — map, prove, run, verify
         run: ./step4_migrate.sh
