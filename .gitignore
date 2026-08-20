@@ -1,0 +1,27 @@
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.backup
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# demonolith artifacts: modules/.demono/ is the migrate workdir (state
+# copies and backups; it also gitignores itself). The carved roots in
+# modules/, the manifest, receipts, and verdicts ARE committed.
+modules/.demono/
+demono.tfplan
+demono.root.tfvars
+demono.graph.tfvars
+demono.env
+
+# the session's local input files, seeded from their committed .sample
+# counterparts by step1_env.sh; the per-module demonolith
+# artifacts (demono.env, demono.*.tfvars) are covered by each emitted root's own .gitignore
+.env
+terraform.tfvars
+.terraform.tfvars

@@ -1,0 +1,6 @@
+# The tfvars channel of the session. step1_env.sh copies this to
+# terraform.tfvars (gitignored) on first run; the engine auto-loads it from
+# then on, and demonolith resolves these values the same way.
+name_prefix         = "acme"
+public_subnet_cidr  = "10.0.1.0/24"
+private_subnet_cidr = "10.0.2.0/24"

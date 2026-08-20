@@ -1,0 +1,86 @@
+# The team story of a monolith split, as three CI lanes.
+#
+#   diff-split          every PR and push — the standing gate. A developer runs
+#                       `demonolith refactor` locally (plus `refactor validate` for the
+#                       engine's own check) and the PR carries the map and the new
+#                       module directories as ordinary files; this job diffs them
+#                       against the source. Offline, no credentials, seconds.
+#
+#   rehearse-migration  every PR — the migration, rehearsed. `migrate map` pulls the
+#                       monolith's state read-only and splits local copies; `migrate
+#                       prove` plans every new module to zero changes. Nothing is
+#                       pushed, so a rejected PR leaves the world untouched.
+#
+#   migrate             manual (workflow_dispatch) — the cutover, run once, after the
+#                       PR is merged and during a change freeze on the monolith. Safe
+#                       to re-run after a crash: already-pushed modules skip.
+#
+# This sample builds a throwaway world per job (a simulated S3 state store, then the
+# baseline apply) so the workflow is self-contained. In a real repository the store
+# and the monolith's state already exist: the store and baseline steps disappear,
+# and the values that .env carries here (the store credentials, TF_VAR_*) come from
+# CI secrets instead of the checked-in mock defaults.
+
+name: split
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  diff-split:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: Install demonolith
+        run: go install github.com/schrieksoft/demonolith@latest
+      - name: Diff the split against the source
+        run: demonolith refactor diff
+
+  rehearse-migration:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: opentofu/setup-opentofu@v1
+      - name: Install demonolith
+        run: go install github.com/schrieksoft/demonolith@latest
+      - name: Start the simulated S3 state store
+        run: ./step0_store.sh
+      - name: Establish the baseline (the monolith this run migrates)
+        run: |
+          ./step1_env.sh
+          ./step2_baseline.sh
+      - name: Rehearse the migration — read-only, nothing pushed
+        run: |
+          source .env
+          demonolith migrate map --engine tofu
+          demonolith migrate prove --engine tofu --var "database_port=5432"
+
+  migrate:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - uses: opentofu/setup-opentofu@v1
+      - name: Install demonolith
+        run: go install github.com/schrieksoft/demonolith@latest
+      - name: Start the simulated S3 state store
+        run: ./step0_store.sh
+      - name: Establish the baseline (the monolith this run migrates)
+        run: |
+          ./step1_env.sh
+          ./step2_baseline.sh
+      - name: Migrate — map, prove, push, verify
+        run: ./step4_migrate.sh
