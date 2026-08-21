@@ -10,10 +10,10 @@ override.tf.json
 *_override.tf
 *_override.tf.json
 
-# demonolith artifacts: modules/.demono/ is the migrate workdir (state
+# demonolith artifacts: roots/.demono/ is the migrate workdir (state
 # copies and backups; it also gitignores itself). The carved roots in
-# modules/, the manifest, receipts, and verdicts ARE committed.
-modules/.demono/
+# roots/, the manifest, receipts, and verdicts ARE committed.
+roots/.demono/
 demono.tfplan
 demono.root.tfvars
 demono.graph.tfvars

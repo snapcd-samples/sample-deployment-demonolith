@@ -1,18 +1,19 @@
-# The team story of a monolith split, as three CI lanes.
+# The team story of a monolith split, as three CI lanes — for illustration, so
+# everything targets the pr-to-me demo branch and nothing runs on main.
 #
-#   refactor-diff   every PR and push — the standing gate. A developer runs
+#   refactor-diff   every PR into pr-to-me — the standing gate. A developer runs
 #                   `demonolith refactor` locally (plus `refactor validate` for the
 #                   engine's own check) and the PR carries the map and the new module
 #                   directories as ordinary files; `refactor diff` checks they still
 #                   match the source. Offline, no credentials, seconds.
 #
-#   migrate-prove   every PR — `migrate map` pulls the monolith's state read-only and
+#   migrate-prove   every PR into pr-to-me — `migrate map` pulls the monolith's state read-only and
 #                   splits local copies; `migrate prove` plans every new module to
 #                   zero changes. Nothing is pushed, so a rejected PR leaves the
 #                   world untouched.
 #
-#   migrate         manual (workflow_dispatch) — the cutover, run once, after the PR
-#                   is merged and during a change freeze on the monolith. Safe to
+#   migrate         manual (workflow_dispatch), on pr-to-me only — the cutover, run
+#                   once, after the PR is merged and during a change freeze. Safe to
 #                   re-run after a crash: already-pushed modules skip. No CI pre-gate
 #                   is needed: demonolith itself refuses a stale or out-of-sync map.
 #
@@ -26,13 +27,12 @@ name: migrate
 
 on:
   pull_request:
-  push:
-    branches: [main]
+    branches: [pr-to-me]
   workflow_dispatch:
 
 jobs:
   refactor-diff:
-    if: github.event_name != 'workflow_dispatch'
+    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -68,7 +68,7 @@ jobs:
           demonolith migrate prove --engine tofu --var "database_port=5432"
 
   migrate:
-    if: github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/pr-to-me'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

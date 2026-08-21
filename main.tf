@@ -56,7 +56,7 @@ resource "random_pet" "network_name" {
 
 # @demono:move networking
 module "public_subnet" {
-  source     = "./subnet"
+  source     = "./modules/subnet"
   vpc_id     = random_uuid.vpc_id.result
   cidr_block = var.public_subnet_cidr
   name       = "${local.name}-public"
@@ -64,7 +64,7 @@ module "public_subnet" {
 
 # @demono:move networking
 module "private_subnet" {
-  source     = "./subnet"
+  source     = "./modules/subnet"
   vpc_id     = random_uuid.vpc_id.result
   cidr_block = var.private_subnet_cidr
   name       = "${local.name}-private"
@@ -153,7 +153,7 @@ resource "random_pet" "app_release" {
 
 # @demono:move app
 module "storefront_dns" {
-  source = "./dns"
+  source = "./modules/dns"
   zone   = local.network_zone
   name   = local.app_name
   target = module.cluster.cluster_endpoint
