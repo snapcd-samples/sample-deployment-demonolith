@@ -1,6 +1,6 @@
 # sample-deployment-demonolith
 
-This sample shows the full journey from a monolithic OpenTofu root to a bootstrapped Snap CD project: one big state gets split into per-module states with [demonolith](https://github.com/schrieksoft/demonolith) (0.3.0 or newer), the split is proven to change nothing, and the new modules are then wired into Snap CD, which takes over the ordering and value-passing the monolith used to do implicitly.
+This sample shows the full journey from a monolithic OpenTofu root to a bootstrapped Snap CD project: one big state gets split into per-module states with [demonolith](https://github.com/schrieksoft/demonolith) (0.4.0 or newer), the split is proven to change nothing, and the new modules are then wired into Snap CD, which takes over the ordering and value-passing the monolith used to do implicitly.
 
 This is the **remote-store flavour**: the monolith's state lives in a remote S3-compatible store — a MinIO container standing in for a real bucket — and its shared platform context is read live from external data sources. [`sample-deployment-demonolith-local`](../sample-deployment-demonolith-local) is the same monolith with plain local state, for running with no infrastructure at all. It is the migration-story counterpart to [`sample-deployment`](../sample-deployment), which builds the same vpc → cluster/database → app landscape from scratch. Everything here is a mock (`random`, `tls`, `time` providers, JSON-backed `http` data sources, an S3 API served from a local container) — no cloud account, no real credentials, nothing leaves your machine except two reads of public JSON.
 
@@ -19,7 +19,7 @@ The root of this repo is the starting point: a single root module with everythin
 
 The seams are already marked: every block that carries state has a `# @demono:move <module>` comment naming its target module (networking / database / cluster / app), except the ops odds and ends, which deliberately have none. One placement choice is worth reading: `tls_private_key.deploy_signer` lives with the app because its provider marks the PEM as sensitive, and a sensitive value must not cross a module boundary — demonolith's `LIMITATIONS.md` explains that constraint, and colocating the key with everything that reads it is the recommended handling.
 
-Prerequisites: demonolith 0.3.1 or newer on the PATH, Docker, and OpenTofu. Then start the store and establish the baseline:
+Prerequisites: demonolith 0.4.0 or newer on the PATH, Docker, and OpenTofu. Then start the store and establish the baseline:
 
 ```bash
 ./step0_store.sh      # starts the simulated S3 store (MinIO, one container,

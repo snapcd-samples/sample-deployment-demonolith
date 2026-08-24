@@ -40,7 +40,7 @@ jobs:
         with:
           go-version: stable
       - name: Install demonolith
-        run: go install github.com/schrieksoft/demonolith@latest
+        run: go install github.com/schrieksoft/demonolith@v0.4.0
       - name: refactor diff — the committed split still matches the source
         run: demonolith refactor diff
 
@@ -54,7 +54,7 @@ jobs:
           go-version: stable
       - uses: opentofu/setup-opentofu@v1
       - name: Install demonolith
-        run: go install github.com/schrieksoft/demonolith@latest
+        run: go install github.com/schrieksoft/demonolith@v0.4.0
       - name: Start the simulated S3 state store
         run: ./step0_store.sh
       - name: Establish the baseline (the monolith this run migrates)
@@ -77,7 +77,7 @@ jobs:
           go-version: stable
       - uses: opentofu/setup-opentofu@v1
       - name: Install demonolith
-        run: go install github.com/schrieksoft/demonolith@latest
+        run: go install github.com/schrieksoft/demonolith@v0.4.0
       - name: Start the simulated S3 state store
         run: ./step0_store.sh
       - name: Establish the baseline (the monolith this run migrates)
