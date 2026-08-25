@@ -9,3 +9,4 @@ tofu apply --var-file demono.root.tfvars
 ```
 
 The demono.* files are written by the `demonolith migrate` pipeline.
+

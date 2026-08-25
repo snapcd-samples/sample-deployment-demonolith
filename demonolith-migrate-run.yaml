@@ -1,0 +1,30 @@
+version: 1
+created: "2026-08-25T12:43:31Z"
+tool: demonolith v0.3.1-2-g977828b-dirty
+map: demonolith-refactor-map.yaml
+map_checksum: sha256:418da9e9470d7d7298d5dfcdc0656bb5bcf71dfe6e558aa96e848578ffedf02d
+action: run
+engine: tofu
+complete: true
+module_states:
+    app: roots/.demono/app.tfstate
+    cluster: roots/.demono/cluster.tfstate
+    database: roots/.demono/database.tfstate
+    legacy: roots/.demono/legacy.tfstate
+    networking: roots/.demono/networking.tfstate
+pushes:
+    - module: app
+      location: my-states/sample-app.tfstate
+      outcome: overwritten
+    - module: cluster
+      location: my-states/sample-cluster.tfstate
+      outcome: overwritten
+    - module: database
+      location: my-states/sample-database.tfstate
+      outcome: overwritten
+    - module: legacy
+      location: my-states/sample-legacy.tfstate
+      outcome: skipped
+    - module: networking
+      location: my-states/sample-networking.tfstate
+      outcome: overwritten
