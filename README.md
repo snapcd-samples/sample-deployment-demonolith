@@ -2,6 +2,10 @@
 
 This sample shows the full journey from a monolithic OpenTofu root to a bootstrapped Snap CD project: one big state gets split into per-module states with [demonolith](https://github.com/schrieksoft/demonolith) (0.3.0 or newer), the split is proven to change nothing, and the new modules are then wired into Snap CD, which takes over the ordering and value-passing the monolith used to do implicitly.
 
+> 📺 **Watch it run:** [Splitting a Terraform Monolith, Line by Line](https://youtu.be/AbpQfjxH1BY) — a line-by-line deep dive that splits this exact sample end to end and hands the pieces to Snap CD.
+
+[![Splitting a Terraform Monolith, Line by Line — Deep Dive](https://img.youtube.com/vi/AbpQfjxH1BY/maxresdefault.jpg)](https://youtu.be/AbpQfjxH1BY)
+
 This is the **remote-store flavour**: the monolith's state lives in a remote S3-compatible store — a MinIO container standing in for a real bucket — and its shared platform context is read live from external data sources. [`sample-deployment-demonolith-local`](../sample-deployment-demonolith-local) is the same monolith with plain local state, for running with no infrastructure at all. It is the migration-story counterpart to [`sample-deployment`](../sample-deployment), which builds the same vpc → cluster/database → app landscape from scratch. Everything here is a mock (`random`, `tls`, `time` providers, JSON-backed `http` data sources, an S3 API served from a local container) — no cloud account, no real credentials, nothing leaves your machine except two reads of public JSON.
 
 ## Stage 1 — the monolith
