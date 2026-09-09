@@ -6,6 +6,8 @@ This sample shows the full journey from a monolithic OpenTofu root to a bootstra
 
 [![Splitting a Terraform Monolith, Line by Line — Deep Dive](https://img.youtube.com/vi/AbpQfjxH1BY/maxresdefault.jpg)](https://youtu.be/AbpQfjxH1BY)
 
+The story continues in [`sample-deployment-demonolith-transfer`](https://github.com/snapcd-samples/sample-deployment-demonolith-transfer): months after a split like this one, a resource that landed in the wrong root is moved between the living roots with demonolith's `transfer` family — code, state, and Snap CD wiring.
+
 This is the **remote-store flavour**: the monolith's state lives in a remote S3-compatible store — a MinIO container standing in for a real bucket — and its shared platform context is read live from external data sources. [`sample-deployment-demonolith-local`](../sample-deployment-demonolith-local) is the same monolith with plain local state, for running with no infrastructure at all. It is the migration-story counterpart to [`sample-deployment`](../sample-deployment), which builds the same vpc → cluster/database → app landscape from scratch. Everything here is a mock (`random`, `tls`, `time` providers, JSON-backed `http` data sources, an S3 API served from a local container) — no cloud account, no real credentials, nothing leaves your machine except two reads of public JSON.
 
 ## Stage 1 — the monolith

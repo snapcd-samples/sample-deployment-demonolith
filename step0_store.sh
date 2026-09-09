@@ -17,6 +17,7 @@ else
     sleep 2
   done
 fi
+echo "Ensuring the tfstate bucket exists (runs the mc client in a throwaway container; first run pulls its image)..."
 docker run --rm --network host --entrypoint sh minio/mc:latest \
   -c "mc alias set store http://localhost:9000 minioadmin minioadmin >/dev/null && mc mb --ignore-existing store/tfstate"
 echo "State store ready: http://localhost:9000 (bucket: tfstate)"
