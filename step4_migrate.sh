@@ -6,4 +6,4 @@ cd "$(dirname "$0")"
 # database_port only ever existed as a -var flag and state does not record
 # inputs, so it has to be passed again here.
 source .env
-demonolith migrate -y --force --engine tofu --var "database_port=5432" 
+demonolith split migrate -y --force --engine tofu --var "database_port=5432" 

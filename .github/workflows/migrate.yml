@@ -2,7 +2,7 @@
 # everything targets the pr-to-me demo branch and nothing runs on main.
 #
 #   refactor-diff   every PR into pr-to-me — the standing gate. A developer runs
-#                   `demonolith refactor` locally (plus `refactor validate` for the
+#                   `demonolith split refactor` locally (plus `refactor validate` for the
 #                   engine's own check) and the PR carries the map and the new module
 #                   directories as ordinary files; `refactor diff` checks they still
 #                   match the source. Offline, no credentials, seconds.
@@ -42,7 +42,7 @@ jobs:
       - name: Install demonolith
         run: go install github.com/schrieksoft/demonolith@latest
       - name: refactor diff — the committed split still matches the source
-        run: demonolith refactor diff
+        run: demonolith split refactor diff
 
   migrate-prove:
     if: github.event_name == 'pull_request'
@@ -64,8 +64,8 @@ jobs:
       - name: migrate map + prove — read-only, nothing pushed
         run: |
           source .env
-          demonolith migrate map --engine tofu
-          demonolith migrate prove --engine tofu --var "database_port=5432"
+          demonolith split migrate map --engine tofu
+          demonolith split migrate prove --engine tofu --var "database_port=5432"
 
   migrate:
     if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/pr-to-me'
