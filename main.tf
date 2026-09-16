@@ -31,7 +31,7 @@ data "http" "oncall" {
 # PEM is provider-sensitive, and a sensitive value must not cross a carve
 # boundary (see demonolith's LIMITATIONS.md), so everything that reads it is
 # placed together.
-# @demono:move app
+# @demono:split app
 resource "tls_private_key" "deploy_signer" {
   algorithm = "ED25519"
 }
@@ -42,10 +42,10 @@ data "tls_public_key" "deploy_key" {
 
 # --- networking ------------------------------------------------------------
 
-# @demono:move networking
+# @demono:split networking
 resource "random_uuid" "vpc_id" {}
 
-# @demono:move networking
+# @demono:split networking
 resource "random_pet" "network_name" {
   prefix = var.name_prefix
   length = 2
@@ -54,7 +54,7 @@ resource "random_pet" "network_name" {
   }
 }
 
-# @demono:move networking
+# @demono:split networking
 module "public_subnet" {
   source     = "./modules/subnet"
   vpc_id     = random_uuid.vpc_id.result
@@ -62,7 +62,7 @@ module "public_subnet" {
   name       = "${local.name}-public"
 }
 
-# @demono:move networking
+# @demono:split networking
 module "private_subnet" {
   source     = "./modules/subnet"
   vpc_id     = random_uuid.vpc_id.result
@@ -70,13 +70,13 @@ module "private_subnet" {
   name       = "${local.name}-private"
 }
 
-# @demono:move networking
+# @demono:split networking
 resource "time_sleep" "network_propagation" {
   create_duration = "1s"
   depends_on      = [random_uuid.vpc_id, module.public_subnet, module.private_subnet]
 }
 
-# @demono:move networking
+# @demono:split networking
 resource "random_uuid" "nat_gateway_id" {
   depends_on = [time_sleep.network_propagation]
 }
@@ -84,7 +84,7 @@ resource "random_uuid" "nat_gateway_id" {
 # --- database --------------------------------------------------------------
 
 # An external module, pulled straight from GitHub (not a Snap CD module).
-# @demono:move database
+# @demono:split database
 module "database" {
   source              = "github.com/snapcd-samples/mock-module-database"
   resource_group_name = var.resource_group_name
@@ -93,7 +93,7 @@ module "database" {
   deploy_to_subnet_id = module.private_subnet.subnet_id
 }
 
-# @demono:move database
+# @demono:split database
 resource "random_uuid" "database_firewall_rule" {
   keepers = {
     subnet_cidr = module.private_subnet.cidr_block
@@ -105,7 +105,7 @@ resource "random_uuid" "database_firewall_rule" {
 # --- cluster ---------------------------------------------------------------
 
 # Also external, also from GitHub.
-# @demono:move cluster
+# @demono:split cluster
 module "cluster" {
   source              = "github.com/snapcd-samples/mock-module-kubernetes-cluster"
   resource_group_name = var.resource_group_name
@@ -119,7 +119,7 @@ module "cluster" {
   depends_on          = [time_sleep.network_propagation]
 }
 
-# @demono:move cluster
+# @demono:split cluster
 resource "random_pet" "node_pool" {
   prefix = local.cluster_name
   keepers = {
@@ -130,13 +130,13 @@ resource "random_pet" "node_pool" {
 
 # --- app -------------------------------------------------------------------
 
-# @demono:move app
+# @demono:split app
 resource "random_password" "app_session_secret" {
   length  = 24
   special = false
 }
 
-# @demono:move app
+# @demono:split app
 resource "random_pet" "app_release" {
   prefix = local.app_name
   keepers = {
@@ -151,7 +151,7 @@ resource "random_pet" "app_release" {
   }
 }
 
-# @demono:move app
+# @demono:split app
 module "storefront_dns" {
   source = "./modules/dns"
   zone   = local.network_zone
