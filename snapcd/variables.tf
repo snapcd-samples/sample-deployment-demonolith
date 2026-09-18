@@ -44,7 +44,7 @@ variable "stack_name" {
   default = "default"
 }
 variable "namespace_name" {
-  default = "monolith"
+  default = "sample-deployment-demonolith"
 }
 variable "module_name" {
   default = "monolith"

@@ -1,15 +1,14 @@
 # Hands the monolith to Snap CD as a single module, so a manual job can run
-# demonolith against it. The state moves to Snap CD's own store: the sample's
-# s3 backend is replaced by the http backend below, which is what makes the
-# split's later `migrate` step push into a store Snap CD controls.
+# demonolith against it. The namespace is this sample's own; the stack is
+# whichever one already exists.
 
-resource "snapcd_stack" "this" {
+data "snapcd_stack" "this" {
   name = var.stack_name
 }
 
 resource "snapcd_namespace" "this" {
   name           = var.namespace_name
-  stack_id       = snapcd_stack.this.id
+  stack_id       = data.snapcd_stack.this.id
   default_engine = var.engine
 }
 
